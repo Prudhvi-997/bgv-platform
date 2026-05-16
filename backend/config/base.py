@@ -4,6 +4,7 @@ Base Django settings — shared by dev and prod.
 Two-database configuration enforces the operational vs reporting bounded
 context separation defined in CLAUDE.md Part 4.8.
 """
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import Csv, config
@@ -28,6 +29,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
 ]
 
@@ -61,6 +63,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Tenant context is pushed into a contextvar from the JWT for every
+    # request that carries a Bearer token. Tenant-scoped managers read
+    # it on every query (CLAUDE.md RISK-02 — multi-tenant isolation).
+    "apps.accounts.middleware.TenantContextMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -113,6 +119,10 @@ DATABASE_ROUTERS = ["config.db_router.ReportingRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Custom user model — must be set before the first migration runs.
+# CLAUDE.md Part 4.3 + RISK-02: `tenant_id` is a first-class field on User.
+AUTH_USER_MODEL = "accounts.User"
+
 # Auth -----------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -134,6 +144,22 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
     ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=config("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=config("JWT_REFRESH_TOKEN_LIFETIME_DAYS", default=7, cast=int)
+    ),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
 }
 
 # CORS -----------------------------------------------------------------------
