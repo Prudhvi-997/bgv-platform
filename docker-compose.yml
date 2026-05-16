@@ -1,0 +1,91 @@
+# KCheck BGV Platform — Local development stack
+# Two MySQL instances enforce the bounded context separation
+# defined in CLAUDE.md Part 4.8 (operational vs reporting DBs).
+
+version: "3.9"
+
+services:
+  operational_db:
+    image: mysql:8.0
+    container_name: kcheck_operational_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: kcheck_operational
+      MYSQL_USER: kcheck
+      MYSQL_PASSWORD: change-me
+      MYSQL_ROOT_PASSWORD: change-me-root
+    ports:
+      - "3306:3306"
+    volumes:
+      - operational_db_data:/var/lib/mysql
+
+  reporting_db:
+    image: mysql:8.0
+    container_name: kcheck_reporting_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: kcheck_reporting
+      MYSQL_USER: kcheck_reporting_ro
+      MYSQL_PASSWORD: change-me
+      MYSQL_ROOT_PASSWORD: change-me-root
+    ports:
+      - "3307:3306"
+    volumes:
+      - reporting_db_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: kcheck_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    container_name: kcheck_backend
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - operational_db
+      - reporting_db
+      - redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.celery
+    container_name: kcheck_celery_worker
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - redis
+      - operational_db
+    volumes:
+      - ./backend:/app/backend
+    command: celery -A config worker --loglevel=info
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.celery
+    container_name: kcheck_celery_beat
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app/backend
+    command: celery -A config beat --loglevel=info
+
+volumes:
+  operational_db_data:
+  reporting_db_data:
+  redis_data:

@@ -1,3 +1,20 @@
+# --- KCheck additions (Node / frontend / OS / IDE) ---
+node_modules/
+.vite/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Local evidence store (DEV ONLY — do not commit candidate files)
+backend/evidence/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

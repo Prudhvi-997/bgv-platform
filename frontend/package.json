@@ -1,0 +1,14 @@
+{
+  "name": "kcheck-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "description": "KCheck BGV Platform — frontend monorepo. See CLAUDE.md for portal boundaries.",
+  "workspaces": [
+    "shared",
+    "ops-portal",
+    "client-portal",
+    "candidate-portal",
+    "vendor-portal",
+    "admin-portal"
+  ]
+}

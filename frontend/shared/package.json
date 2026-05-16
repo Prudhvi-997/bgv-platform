@@ -1,0 +1,12 @@
+{
+  "name": "@kcheck/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared design tokens and base components for all KCheck portals.",
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}
