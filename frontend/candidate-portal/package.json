@@ -1,0 +1,22 @@
+{
+  "name": "@kcheck/candidate-portal",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Candidate Portal — mobile-first PWA, public-internet-facing",
+  "scripts": {
+    "dev": "vite --port 3002",
+    "build": "vite build",
+    "preview": "vite preview --port 3002"
+  },
+  "dependencies": {
+    "@kcheck/shared": "0.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
+  }
+}

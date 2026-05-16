@@ -1,0 +1,30 @@
+# KCheck Celery worker image.
+#
+# Worker tasks include:
+#   - notification fan-out (CLAUDE.md rule 4)
+#   - document processing (ZIP extraction, DOCX/XLSX → PDF via
+#     LibreOffice headless — CLAUDE.md rule 5)
+#   - SLA / reporting batch jobs
+
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        default-libmysqlclient-dev \
+        pkg-config \
+        libmagic1 \
+        libreoffice \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+COPY backend /app/backend
+WORKDIR /app/backend
+
+CMD ["celery", "-A", "config", "worker", "--loglevel=info"]
