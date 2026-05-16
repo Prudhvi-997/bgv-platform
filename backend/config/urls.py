@@ -11,6 +11,10 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Authentication endpoints are pre-portal — the client does not yet
+    # have a portal scope until the JWT is issued. Subsequent requests
+    # flow to /api/<portal>/ and hit Layer-1 enforcement at the BFF.
+    path("api/auth/", include("apps.accounts.urls")),
     path("api/ops/", include("bff.ops_bff.urls")),
     path("api/client/", include("bff.client_bff.urls")),
     path("api/candidate/", include("bff.candidate_bff.urls")),
